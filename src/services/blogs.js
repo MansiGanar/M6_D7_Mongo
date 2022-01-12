@@ -6,10 +6,10 @@ const blogsRouter = express.Router();
 
 blogsRouter.post("/", async (req, res, next) => {
   try {
-    const newUser = new BlogModel(req.body); // here happens validation of req.body, if it is not ok Mongoose will throw an error (if it is ok user it is not saved in db yet)
-    const { _id } = await newUser.save(); // this is the line in which the interaction with Mongo happens
+    const newBlog = new BlogModel(req.body);
+    const { _id } = await newBlog.save();
 
-    res.status(201).send({ _id });
+    res.status(201).send(newBlog);
   } catch (error) {
     next(error);
   }
@@ -24,45 +24,45 @@ blogsRouter.get("/", async (req, res, next) => {
   }
 });
 
-blogsRouter.get("/:userId", async (req, res, next) => {
+blogsRouter.get("/:blogId", async (req, res, next) => {
   try {
-    const userId = req.params.userId;
+    const blogId = req.params.blogId;
 
-    const user = await BlogModel.findById(userId);
+    const user = await BlogModel.findById(blogId);
     if (user) {
       res.send(user);
     } else {
-      next(createHttpError(404, `User with id ${userId} not found!`));
+      next(createHttpError(404, `User with id ${blogId} not found!`));
     }
   } catch (error) {
     next(error);
   }
 });
 
-blogsRouter.put("/:userId", async (req, res, next) => {
+blogsRouter.put("/:blogId", async (req, res, next) => {
   try {
-    const userId = req.params.userId;
-    const updatedUser = await BlogModel.findByIdAndUpdate(userId, req.body, {
+    const blogId = req.params.blogId;
+    const updatedUser = await BlogModel.findByIdAndUpdate(blogId, req.body, {
       new: true,
-    }); // by default findByIdAndUpdate returns the document pre-update, if I want to retrieve the updated document, I should use new:true as an option
+    });
     if (updatedUser) {
       res.send(updatedUser);
     } else {
-      next(createHttpError(404, `User with id ${userId} not found!`));
+      next(createHttpError(404, `User with id ${blogId} not found!`));
     }
   } catch (error) {
     next(error);
   }
 });
 
-blogsRouter.delete("/:userId", async (req, res, next) => {
+blogsRouter.delete("/:blogId", async (req, res, next) => {
   try {
-    const userId = req.params.userId;
-    const deletedUser = await BlogModel.findByIdAndDelete(userId);
+    const blogId = req.params.blogId;
+    const deletedUser = await BlogModel.findByIdAndDelete(blogId);
     if (deletedUser) {
       res.status(204).send();
     } else {
-      next(createHttpError(404, `User with id ${userId} not found!`));
+      next(createHttpError(404, `User with id ${blogId} not found!`));
     }
   } catch (error) {
     next(error);
