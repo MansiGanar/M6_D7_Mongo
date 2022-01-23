@@ -49,7 +49,7 @@ blogsRouter.put("/:blogId", async (req, res, next) => {
     if (updatedBlog) {
       res.send(updatedBlog);
     } else {
-      next(createHttpError(404, `User with id ${blogId} not found!`));
+      next(createHttpError(404, `blog with id ${blogId} not found!`));
     }
   } catch (error) {
     next(error);
@@ -63,7 +63,7 @@ blogsRouter.delete("/:blogId", async (req, res, next) => {
     if (deletedBlog) {
       res.status(204).send();
     } else {
-      next(createHttpError(404, `User with id ${blogId} not found!`));
+      next(createHttpError(404, `blog with id ${blogId} not found!`));
     }
   } catch (error) {
     next(error);
@@ -158,5 +158,61 @@ blogsRouter.get("/:blogsId/comments/:commentsId", async (req, res, next) => {
 });
 
 // PUT
+
+blogsRouter.put("/:blogsId/comments/:commentsId", async (req, res, next) => {
+  try {
+    const blog = await BlogModel.findById(req.params.blogsId);
+    if (blog) {
+      const index = blog.comment.findIndex(
+        (comment) => comment._id.toString() === req.params.commentsId
+      );
+
+      if (index !== -1) {
+        blog.comment[index] = {
+          ...blog.comment[index].toObject(),
+          ...req.body,
+        };
+        await blog.save();
+        res.send(blog);
+      } else {
+        next(
+          createHttpError(
+            404,
+            `comment with id ${req.params.commentsId} not found!`
+          )
+        );
+      }
+    } else {
+      next(
+        createHttpError(404, `blog with id ${req.params.blogsId} not found!`)
+      );
+    }
+  } catch (error) {
+    next(error);
+  }
+});
+
+// DELETE
+
+blogsRouter.delete("/:blogsId/comments/:commentsId", async (req, res, next) => {
+  try {
+    const deletedblog = await BlogModel.findByIdAndUpdate(
+      req.params.blogsId,
+      { $pull: { comment: { _id: req.params.commentsId } } },
+      { new: true }
+    );
+    console.log(deletedblog);
+
+    if (deletedblog) {
+      res.send("The deleted blog is: " + deletedblog);
+    } else {
+      next(
+        createHttpError(404, `blog with id ${req.params.blogsId} not found!`)
+      );
+    }
+  } catch (error) {
+    next(error);
+  }
+});
 
 export default blogsRouter;
